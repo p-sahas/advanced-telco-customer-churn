@@ -107,3 +107,7 @@ data/raw/*.csv
 data/processed/*
 data/interim/*
 data/external/*
+
+
+# Personal Notes
+Notes.md
