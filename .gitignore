@@ -111,3 +111,9 @@ data/external/*
 
 # Personal Notes
 Notes.md
+
+# TEMPORY FILES
+/catboost_info
+*.tmp
+*.tfevents
+*.tsv 
