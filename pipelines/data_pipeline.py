@@ -40,5 +40,5 @@ def data_pipeline(file_path: str) -> pd.DataFrame:
     df = outlier_detector.handle_outliers(df, selected_columns, method='remove')
     logger.info("Outliers handled.")
 
-    # logger.info("Data pipeline completed.")
-    # return df
+    logger.info("Data pipeline completed.")
+    return df

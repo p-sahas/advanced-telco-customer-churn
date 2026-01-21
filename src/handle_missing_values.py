@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 from enum import Enum
-from typing import Optimal
+from typing import Optional
 from abc import ABC, abstractmethod
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
