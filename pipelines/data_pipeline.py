@@ -19,8 +19,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from data_ingestion import DataIngestorCSV
 from handle_missing_values import TotalChargesMissingValueHandler
 from outlier_detection import OutlierDetector, IQROutlierDetection
+from feature_binning import TenureBinningStrategy
 
-def data_pipeline(file_path: str) -> pd.DataFrame:
+def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.DataFrame:
     # Step 1: Data Ingestion
     logger.info("Starting data ingestion.")
     ingestor = DataIngestorCSV()
@@ -40,5 +41,11 @@ def data_pipeline(file_path: str) -> pd.DataFrame:
     df = outlier_detector.handle_outliers(df, selected_columns, method='remove')
     logger.info("Outliers handled.")
 
-    logger.info("Data pipeline completed.")
-    return df
+    # Step 4: Feature Binning
+    logger.info("Binning features.")
+    tenure_binner = TenureBinningStrategy()
+    df = tenure_binner.bin(df, 'tenure')
+    logger.info("Feature binning completed.")
+
+    # logger.info("Data pipeline completed.")
+    # return df
