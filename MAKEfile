@@ -1,0 +1,48 @@
+# Activate environment 'source .venv/Scripts/activate' 
+
+PYTHIN = python3
+VENV = .venv/Scripts/activate
+
+all: help
+
+# Help target
+help:
+	@echo "Available targets:"
+	@echo "  make install             - Install project dependencies and set up environment"
+	@echo "  make data-pipeline       - Run the data pipeline"
+	@echo "  make train-pipeline      - Run the training pipeline"
+	@echo "  make streaming-inference - Run the streaming inference pipeline with the sample JSON"
+	@echo "  make run-all             - Run all pipelines in sequence"
+	@echo "  make clean               - Clean up artifacts"
+
+# Install project dependencies and set up environment
+install:
+	@echo "Installing project dependencies and setting up environment..."
+	@echo "Creating virtual environment..."
+	@python3 -m venv .venv
+	@echo "Activating virtual environment and installing dependencies..."
+	@source .venv/bin/activate && pip install --upgrade pip
+	@source .venv/bin/activate && pip install -r requirements.txt
+	@echo "Installation completed successfully!"
+	@echo "To activate the virtual environment, run: source .venv/Scripts/activate"
+
+# Clean up
+clean:
+	@echo "Cleaning up artifacts..."
+	rm -rf artifacts/models/*
+	rm -rf artifacts/evaluation/*
+	rm -rf artifacts/predictions/*
+	rm -rf artifacts/encode/*
+	rm -rf mlruns
+	@echo "Cleanup completed!"
+
+# Run data pipeline
+data-pipeline:
+	@echo "Start running data pipeline..."
+	@source $(VENV) && $(PYTHON) pipelines/data_pipeline.py
+	@echo "Data pipeline completed successfully!"
+
+.PHONY: data-pipeline-rebuild
+data-pipeline-rebuild:
+	@source $(VENV) && $(PYTHON) -c "from pipelines.data_pipeline import data_pipeline; data_pipeline(force_rebuild=True)"
+

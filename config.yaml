@@ -1,0 +1,75 @@
+data_paths:
+  raw_data: "data/raw/Telco-Customer-Churn.csv"
+  processed_data: "data/processed/Telco-Customer-Churn.csv"
+  imputed_data: "data/processed/imputed.csv"
+  processed_dir: "data/processed"
+  artifacts_dir: "artifacts"
+  data_artifacts_dir: "artifacts/data"
+  model_artifacts_dir: "artifacts/models"
+  X_train: "artifacts/data/X_train.csv"
+  X_test: "artifacts/data/X_test.csv"
+  Y_train: "artifacts/data/Y_train.csv"
+  Y_test: "artifacts/data/Y_test.csv"
+
+columns:
+  target: 'Churn'
+  drop_columns: ['customerID']
+  categorical_columns: ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'TenureCategory']
+  numeric_columns: ['tenure', 'MonthlyCharges', 'TotalCharges']
+
+
+outlier_detection:
+  detection_method: "iqr"
+  handling_method: "remove"
+  z_score_threshold: 3.0
+
+feature_binning:
+  tenure_group_bins:
+    New: [0, 12]
+    Established: [12, 48]
+    Loyal: [48, None]
+
+
+
+data_splitting:
+  split_type: "simple"
+  test_size: 0.2
+  random_state: 42
+  n_splits: 5
+
+
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1-score"
+  cv_folds: 5
+  random_state: 42
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(levelname)s - %(message)s"
+  file: "pipeline.log"
+
+mlflow:
+  tracking_uri: "file:./mlruns"  # Local file-based tracking
+  experiment_name: "Telco Churn Analysis"
+  model_registry_name: "telco_churn_prediction"
+  artifact_path: "model"
+  run_name_prefix: "telco_churn_run"
+  tags:
+    project: "telco_customer_churn_prediction"
+    team: "ml_engineering"
+    environment: "development"
+  autolog: true
+
+environment:
+  experiment_name: "telco_churn_analysis"
+
+pipeline:
+  data_pipeline_name: "data_processing_pipeline"
+  training_pipeline_name: "model_training_pipeline"
+  deployment_pipeline_name: "model_deployment_pipeline"
+  inference_pipeline_name: "inference_pipeline"
+  enable_cache: false
