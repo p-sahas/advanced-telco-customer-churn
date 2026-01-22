@@ -20,6 +20,7 @@ from data_ingestion import DataIngestorCSV
 from handle_missing_values import TotalChargesMissingValueHandler
 from outlier_detection import OutlierDetector, IQROutlierDetection
 from feature_binning import TenureBinningStrategy
+from feature_encoding import OneHotEncodingStrategy, LabelEncodingStrategy
 
 def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.DataFrame:
     # Step 1: Data Ingestion
@@ -46,6 +47,16 @@ def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.Da
     tenure_binner = TenureBinningStrategy()
     df = tenure_binner.bin(df, 'tenure')
     logger.info("Feature binning completed.")
+
+    # Step 5: Feature Encoding
+    logger.info("Encoding features.")
+    target_column = LabelEncodingStrategy() 
+    df = target_column.encode(df, 'Churn')
+
+    categorical_features = [col for col in df.columns if col != 'Churn']
+    for col in categorical_features:
+        df = OneHotEncodingStrategy().encode(df, col)
+    logger.info("Feature encoding completed.")
 
     # logger.info("Data pipeline completed.")
     # return df

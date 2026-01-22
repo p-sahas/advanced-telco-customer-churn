@@ -16,17 +16,7 @@ columns:
   drop_columns: ['customerID']
   categorical_columns: ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'TenureCategory']
   numeric_columns: ['tenure', 'MonthlyCharges', 'TotalCharges']
-  feature_columns:
-    - "CreditScore"
-    - "Geography"
-    - "Gender"
-    - "Age"
-    - "Tenure"
-    - "Balance"
-    - "NumOfProducts"
-    - "HasCrCard"
-    - "IsActiveMember"
-    - "EstimatedSalary"
+
 
 outlier_detection:
   detection_method: "iqr"
