@@ -21,7 +21,7 @@ class VariableType(Enum):
 class OneHotEncodingStrategy(FeatureEncodingStrategy):
     def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
         logging.info(f"Applying One-Hot Encoding to the {column} column.")
-        one_hot = pd.get_dummies(df[column], prefix=column, drop_first=TFalse, dtype=int)
+        one_hot = pd.get_dummies(df[column], prefix=column, drop_first=False, dtype=int)
         df = pd.concat([df, one_hot], axis=1)
         df.drop(column, axis=1, inplace=True)
         return df

@@ -14,7 +14,7 @@ data_paths:
 columns:
   target: 'Churn'
   drop_columns: ['customerID']
-  categorical_columns: ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'TenureCategory']
+  categorical_columns: ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'tenureCategory']
   numeric_columns: ['tenure', 'MonthlyCharges', 'TotalCharges']
 
 
@@ -29,6 +29,10 @@ feature_binning:
     Established: [12, 48]
     Loyal: [48, None]
 
+
+feature_scaling:
+  scaling_type: "standard"
+  columns_to_scale: ['tenure', 'MonthlyCharges', 'TotalCharges']
 
 
 data_splitting:
