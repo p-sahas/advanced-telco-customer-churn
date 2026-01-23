@@ -70,7 +70,9 @@ def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.Da
     df = standard_scaler.scale(df, scalling_config['columns_to_scale'])
     logger.info("Feature scaling completed.")
 
-    
+    # Step 7: Post Processing
+    df = df.drop('customerID', axis=1, inplace=True)
+    print(f'data after post processing : \n {df.head()}')
 
     # logger.info("Data pipeline completed.")
     # return df
