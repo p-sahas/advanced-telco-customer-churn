@@ -21,6 +21,12 @@ from handle_missing_values import TotalChargesMissingValueHandler
 from outlier_detection import OutlierDetector, IQROutlierDetection
 from feature_binning import TenureBinningStrategy
 from feature_encoding import OneHotEncodingStrategy, LabelEncodingStrategy
+from feature_scaling import StandardScalingStrategy
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+from config import get_data_paths, get_columns, get_missing_values_config, get_outlier_config, get_binning_config, get_encoding_config, get_scaling_config, get_splitting_config
+
+scalling_config = get_scaling_config()
 
 def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.DataFrame:
     # Step 1: Data Ingestion
@@ -57,6 +63,14 @@ def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.Da
     for col in categorical_features:
         df = OneHotEncodingStrategy().encode(df, col)
     logger.info("Feature encoding completed.")
+
+    # Step 6: Feature Scalling
+    logger.info("Scaling features.")
+    standard_scaler = StandardScalingStrategy()
+    df = standard_scaler.scale(df, scalling_config['columns_to_scale'])
+    logger.info("Feature scaling completed.")
+
+    
 
     # logger.info("Data pipeline completed.")
     # return df
