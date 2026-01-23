@@ -22,6 +22,7 @@ from outlier_detection import OutlierDetector, IQROutlierDetection
 from feature_binning import TenureBinningStrategy
 from feature_encoding import OneHotEncodingStrategy, LabelEncodingStrategy
 from feature_scaling import StandardScalingStrategy
+from data_spiltter import SimpleTrainTestSplitStratergy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
 from config import get_data_paths, get_columns, get_missing_values_config, get_outlier_config, get_binning_config, get_encoding_config, get_scaling_config, get_splitting_config
@@ -73,6 +74,12 @@ def data_pipeline(file_path: str = 'data/raw/Telco-Customer-Churn.csv') -> pd.Da
     # Step 7: Post Processing
     df = df.drop('customerID', axis=1, inplace=True)
     print(f'data after post processing : \n {df.head()}')
+
+    # Step 8: Data Splitting
+    logger.info("Splitting data into training and testing sets.")
+    splitter = SimpleTrainTestSplitStratergy(test_size=0.2)
+    X_train, X_test, Y_train, Y_test = splitter.split_data(df, 'Churn')
+    logger.info("Data splitting completed.")
 
     # logger.info("Data pipeline completed.")
     # return df
