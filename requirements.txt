@@ -6,6 +6,4 @@ scikit-learn
 xgboost
 catboost
 imblearn
-collections
 optuna
-warnings
