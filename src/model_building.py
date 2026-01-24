@@ -1,11 +1,6 @@
 import joblib, os
 from typing import Any, Dict
-from datetime import datetime
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from collections import Counter
+from abc import ABC, abstractmethod
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
@@ -33,3 +28,19 @@ class BaseModelBuilder(ABC):
 
         self.model = joblib.load(filepath)
 
+class LogisticRegressionModelBuilder(BaseModelBuilder):
+    def __init__(self, model_name, **kwargs):
+        default_params = {
+            'penalty': 'l2',
+            'C': 0.1,  # Inverse regularization strength
+            'solver': 'saga', # liblinear for L1, saga for elasticnet
+            'max_iter': 100,
+            'random_state': 42
+        }
+        default_params.update(kwargs)
+        super().__init__('LogisticRegression', **default_params)
+
+    def build_model(self):
+        self.model = LogisticRegression(**self.params)
+        return self.model
+    
