@@ -28,7 +28,7 @@ class BaseModelBuilder(ABC):
         self.model = joblib.load(filepath)
 
 class LogisticRegressionModelBuilder(BaseModelBuilder):
-    def __init__(self, model_name, **kwargs):
+    def __init__(self, **kwargs):
         default_params = {
             'penalty': 'l2',
             'C': 0.1,  # Inverse regularization strength
@@ -44,7 +44,7 @@ class LogisticRegressionModelBuilder(BaseModelBuilder):
         return self.model
     
 class DecisionTreeModelBuilder(BaseModelBuilder):
-    def __init__(self, model_name, **kwargs):
+    def __init__(self, **kwargs):
         default_params = {
             'criterion': 'gini',
             'max_depth': None,
@@ -62,7 +62,7 @@ class DecisionTreeModelBuilder(BaseModelBuilder):
         return self.model
 
 class XGBoostModelBuilder(BaseModelBuilder):
-    def __init__(self, model_name, **kwargs):
+    def __init__(self, **kwargs):
         default_params = {
             'n_estimators': 100,
             'max_depth': 9,
