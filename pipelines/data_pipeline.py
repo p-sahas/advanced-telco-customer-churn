@@ -103,6 +103,8 @@ def data_pipeline() -> pd.DataFrame:
     logger.info("Post processing data.")
     drop_columns = columns_config['drop_columns']
     df = df.drop(drop_columns, axis=1)
+    # Encode target variable
+    df['Churn'] = df['Churn'].map({'No': 0, 'Yes': 1})
     print(f'data after post processing : \n {df.head()}')
     logger.info("Post processing completed.")
 
@@ -116,7 +118,7 @@ def data_pipeline() -> pd.DataFrame:
     logger.info("Handling class imbalance with SMOTE.")
     smote = SMOTE(random_state=42)
     X_train, Y_train = smote.fit_resample(X_train, Y_train)
-    logger.info("Class imbalance handled.") 
+    logger.info("Class imbalance handled.")
 
     # Create directories and save splits
     logger.info("Saving processed data splits.")
