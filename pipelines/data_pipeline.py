@@ -100,9 +100,11 @@ def data_pipeline() -> pd.DataFrame:
     logger.info("Feature encoding completed.")
 
     # Step 7: Post Processing
+    logger.info("Post processing data.")
     drop_columns = columns_config['drop_columns']
     df = df.drop(drop_columns, axis=1)
     print(f'data after post processing : \n {df.head()}')
+    logger.info("Post processing completed.")
 
     # Step 8: Data Splitting
     logger.info("Splitting data into training and testing sets.")
@@ -114,8 +116,10 @@ def data_pipeline() -> pd.DataFrame:
     logger.info("Handling class imbalance with SMOTE.")
     smote = SMOTE(random_state=42)
     X_train, Y_train = smote.fit_resample(X_train, Y_train)
+    logger.info("Class imbalance handled.") 
 
     # Create directories and save splits
+    logger.info("Saving processed data splits.")
     os.makedirs('artifacts/data', exist_ok=True)
     X_train.to_csv(x_train_path, index=False)
     X_test.to_csv(x_test_path, index=False)
