@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
+from imblearn.over_sampling import SMOTE
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from data_ingestion import DataIngestorCSV
@@ -99,9 +100,11 @@ def data_pipeline() -> pd.DataFrame:
     logger.info("Feature encoding completed.")
 
     # Step 7: Post Processing
+    logger.info("Post processing data.")
     drop_columns = columns_config['drop_columns']
     df = df.drop(drop_columns, axis=1)
     print(f'data after post processing : \n {df.head()}')
+    logger.info("Post processing completed.")
 
     # Step 8: Data Splitting
     logger.info("Splitting data into training and testing sets.")
@@ -109,7 +112,14 @@ def data_pipeline() -> pd.DataFrame:
     X_train, X_test, Y_train, Y_test = splitter.split_data(df, 'Churn')
     logger.info("Data splitting completed.")
 
+    # Step 9: Class Imbalance Handling
+    logger.info("Handling class imbalance with SMOTE.")
+    smote = SMOTE(random_state=42)
+    X_train, Y_train = smote.fit_resample(X_train, Y_train)
+    logger.info("Class imbalance handled.") 
+
     # Create directories and save splits
+    logger.info("Saving processed data splits.")
     os.makedirs('artifacts/data', exist_ok=True)
     X_train.to_csv(x_train_path, index=False)
     X_test.to_csv(x_test_path, index=False)
