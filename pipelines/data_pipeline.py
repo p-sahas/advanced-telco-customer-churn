@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
+from imblearn.over_sampling import SMOTE
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from data_ingestion import DataIngestorCSV
@@ -108,6 +109,11 @@ def data_pipeline() -> pd.DataFrame:
     splitter = SimpleTrainTestSplitStratergy(test_size=0.2)
     X_train, X_test, Y_train, Y_test = splitter.split_data(df, 'Churn')
     logger.info("Data splitting completed.")
+
+    # Step 9: Class Imbalance Handling
+    logger.info("Handling class imbalance with SMOTE.")
+    smote = SMOTE(random_state=42)
+    X_train, Y_train = smote.fit_resample(X_train, Y_train)
 
     # Create directories and save splits
     os.makedirs('artifacts/data', exist_ok=True)
