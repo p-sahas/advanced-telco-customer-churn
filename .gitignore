@@ -117,3 +117,7 @@ Notes.md
 *.tmp
 *.tfevents
 *.tsv 
+
+
+# MLFLOW FILES
+mlruns/
