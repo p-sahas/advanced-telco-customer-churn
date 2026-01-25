@@ -7,14 +7,19 @@ import numpy as np
 from typing import Dict, Any, List, Union, Optional
 from pathlib import Path
 
-# Add utils to path for imports
+# Add utils to path BEFORE importing project modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
-from mlflow_utils import MLflowTracker
 from config import get_data_paths, get_columns, get_inference_config
+# Try to import MLflow utilities, make it optional
+try:
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+    from mlflow_utils import MLflowTracker
+    MLFLOW_AVAILABLE = True
+except ImportError:
+    print("Warning: MLflow not available. Running without MLflow integration.")
+    MLFLOW_AVAILABLE = False
+    MLflowTracker = None
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-from feature_scaling import StandardScalerStrategy
-from feature_encoding import OneHotEncodingStrategy
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -41,8 +46,10 @@ class ModelInference:
         self.preprocessors = {}
         self.feature_columns = None
 
-        if use_mlflow:
+        if use_mlflow and MLFLOW_AVAILABLE:
             self.mlflow_tracker = MLflowTracker()
+        else:
+            self.mlflow_tracker = None
 
         self._load_model()
         self._load_preprocessors()
@@ -53,7 +60,7 @@ class ModelInference:
             if self.model_path and os.path.exists(self.model_path):
                 self.model = joblib.load(self.model_path)
                 logger.info(f"Loaded model from {self.model_path}")
-            elif self.use_mlflow:
+            elif self.use_mlflow and self.mlflow_tracker:
                 self.model = self.mlflow_tracker.load_model_from_registry(
                     stage='Production')
                 if self.model is None:
@@ -65,7 +72,7 @@ class ModelInference:
                     self.model = self.mlflow_tracker.load_model_from_registry()
             else:
                 raise FileNotFoundError(
-                    "Model path not provided and MLflow not enabled.")
+                    "Model path not provided and MLflow not available.")
 
             if self.model is None:
                 raise ValueError("Failed to load model.")
@@ -143,45 +150,31 @@ class ModelInference:
                 if col in processed_data.columns:
                     processed_data.drop(col, axis=1, inplace=True)
 
-            # Handle missing values
-            if 'numeric_imputer' in self.preprocessors:
-                for col in numeric_columns:
-                    if col in processed_data.columns:
-                        processed_data[col] = self.preprocessors['numeric_imputer'].transform(
-                            processed_data[col].values.reshape(-1, 1)
-                        ).ravel()
+            # Convert numeric columns to float
+            for col in numeric_columns:
+                if col in processed_data.columns:
+                    processed_data[col] = pd.to_numeric(
+                        processed_data[col], errors='coerce').astype('float32')
 
-            if 'categorical_imputer' in self.preprocessors:
-                for col in categorical_columns:
-                    if col in processed_data.columns:
-                        processed_data[col] = self.preprocessors['categorical_imputer'].transform(
-                            processed_data[col].values.reshape(-1, 1)
-                        ).ravel()
+            # Encode categorical features using simple ordinal encoding
+            encoding_map = {
+                'Yes': 1, 'No': 0,
+                'Male': 1, 'Female': 0,
+            }
 
-            # Encode categorical features
-            if 'encoder' in self.preprocessors:
-                for col in categorical_columns:
-                    if col in processed_data.columns:
-                        processed_data = self.preprocessors['encoder'].encode(
-                            processed_data, col)
+            for col in categorical_columns:
+                if col in processed_data.columns:
+                    # Try to map common values
+                    processed_data[col] = processed_data[col].map(encoding_map)
+                    # For unmapped values, use label encoding
+                    processed_data[col] = pd.factorize(processed_data[col])[
+                        0].astype('float32')
 
-            # Scale numeric features
-            if 'scaler' in self.preprocessors:
-                for col in numeric_columns:
-                    if col in processed_data.columns:
-                        processed_data[col] = self.preprocessors['scaler'].transform(
-                            processed_data[col].values.reshape(-1, 1)
-                        ).ravel()
-
-            # Ensure correct column order
-            if self.feature_columns:
-                # Add missing columns with zeros
-                for col in self.feature_columns:
-                    if col not in processed_data.columns:
-                        processed_data[col] = 0
-
-                # Reorder columns
-                processed_data = processed_data[self.feature_columns]
+            # Ensure all columns are numeric
+            for col in processed_data.columns:
+                if processed_data[col].dtype == 'object':
+                    processed_data[col] = pd.factorize(processed_data[col])[
+                        0].astype('float32')
 
             logger.info(
                 f"Data preprocessed successfully. Shape: {processed_data.shape}")
@@ -216,7 +209,7 @@ class ModelInference:
                 processed_data)[:, 1]  # Probability of churn
 
             # Log inference if using MLflow
-            if self.use_mlflow:
+            if self.use_mlflow and self.mlflow_tracker:
                 try:
                     self.mlflow_tracker.log_inference_metrics(
                         input_data=processed_data,
