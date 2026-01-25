@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import joblib
 import pandas as pd
@@ -6,11 +7,14 @@ import numpy as np
 from typing import Dict, Any, List, Union, Optional
 from pathlib import Path
 
-from utils.config import get_data_paths, get_columns, get_inference_config
-from utils.mlflow_utils import MLflowTracker
-from src.feature_encoding import OneHotEncodingStrategy
-from src.feature_scaling import StandardScalerStrategy
-from src.handle_missing_values import MeanImputationStrategy, ModeImputationStrategy
+# Add utils to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+from mlflow_utils import MLflowTracker
+from config import get_data_paths, get_columns, get_inference_config
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+from feature_scaling import StandardScalerStrategy
+from feature_encoding import OneHotEncodingStrategy
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
