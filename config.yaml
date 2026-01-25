@@ -77,3 +77,12 @@ pipeline:
   deployment_pipeline_name: "model_deployment_pipeline"
   inference_pipeline_name: "inference_pipeline"
   enable_cache: false
+
+model:
+  model_params:
+    n_estimators: 100
+    max_depth: 9
+    learning_rate: 0.05
+    colsample_bytree: 0.6
+    gamma: 0.2
+    random_state: 42
