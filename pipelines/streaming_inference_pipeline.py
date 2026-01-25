@@ -1,23 +1,33 @@
+
 import os
 import sys
 import time
 import logging
 import pandas as pd
 import numpy as np
-from typing import Dict, Any, List, Optional, Generator
+from typing import Dict, Any, List, Optional, Generator, Union
 from datetime import datetime
 import json
 from pathlib import Path
 import queue
 import threading
 
-# Add src and utils to path
+# Add src and utils to path BEFORE importing project modules
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from model_inference import ModelInference
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
-from mlflow_utils import MLflowTracker
-from config import get_inference_config, get_data_paths, get_logging_config
+from config import get_logging_config, get_data_paths
 
+# Try to import MLflow utilities, make it optional
+try:
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+    from mlflow_utils import MLflowTracker
+    MLFLOW_AVAILABLE = True
+except ImportError:
+    print("Warning: MLflow not available. Running without MLflow integration.")
+    MLFLOW_AVAILABLE = False
+    MLflowTracker = None
 
 
 logging.basicConfig(level=logging.INFO,
@@ -381,6 +391,9 @@ def run_streaming_inference_demo(duration_seconds: int = 30):
 
         # Final statistics
         stats = pipeline.get_statistics()
+        # Convert datetime objects to strings for JSON serialization
+        if 'start_time' in stats and stats['start_time']:
+            stats['start_time'] = stats['start_time'].isoformat()
         logger.info("Demo completed. Final statistics:")
         logger.info(json.dumps(stats, indent=2))
 
