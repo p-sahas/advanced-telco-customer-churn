@@ -1,18 +1,19 @@
 import logging
-import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import Tuple
-from sklearn.model_selection import train_test_split
+from pyspark.sql import DataFrame
+
 logging.basicConfig(level=logging.INFO, format=
     '%(asctime)s - %(levelname)s - %(message)s')
 
-
-
 class DataSplittingStrategy(ABC):
     @abstractmethod
-    def split_data(self, df: pd.DataFrame, target_column: str) ->Tuple[pd.
-        DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    def split_data(self, df: DataFrame, target_column: str = None) -> Tuple[DataFrame, DataFrame]:
+        """
+        Split DataFrame into train and test sets.
+        target_column is kept for API compatibility but not always needed for randomSplit.
+        """
         pass
 
 
@@ -21,13 +22,11 @@ class SplitType(str, Enum):
     STRATIFIED = 'stratified'
 
 class SimpleTrainTestSplitStratergy(DataSplittingStrategy):
-    def __init__(self, test_size = 0.2):
-        self.test_size= test_size
-         
+    def __init__(self, test_size: float = 0.2, seed: int = 42):
+        self.test_size = test_size
+        self.seed = seed
 
-    def split_data(self, df, target_column):
-        Y = df[target_column]
-        X = df.drop(columns=[target_column])
-        
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=self.test_size, random_state=42)
-        return X_train, X_test, Y_train, Y_test
+    def split_data(self, df: DataFrame, target_column: str = None) -> Tuple[DataFrame, DataFrame]:
+        logging.info(f"Splitting data with test_size={self.test_size}, seed={self.seed}")
+        train_df, test_df = df.randomSplit([1.0 - self.test_size, self.test_size], seed=self.seed)
+        return train_df, test_df

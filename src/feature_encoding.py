@@ -1,16 +1,25 @@
 import logging
-import pandas as pd
 import os
 import json
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, IndexToString
+from pyspark.ml import Pipeline
+from spark_session import get_or_create_spark_session
+
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 class FeatureEncodingStrategy(ABC):
+    def __init__(self, spark: Optional[SparkSession] = None):
+        # Initialize with SparkSession.
+        self.spark = spark or get_or_create_spark_session()
+
     @abstractmethod
-    def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
+    def encode(self, df: DataFrame, column: str) -> DataFrame:
         pass
 
 class VariableType(Enum):
@@ -19,19 +28,32 @@ class VariableType(Enum):
 
 
 class OneHotEncodingStrategy(FeatureEncodingStrategy):
-    def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
-        logging.info(f"Applying One-Hot Encoding to the {column} column.")
-        one_hot = pd.get_dummies(df[column], prefix=column, drop_first=False, dtype=int)
-        df = pd.concat([df, one_hot], axis=1)
-        df.drop(column, axis=1, inplace=True)
-        return df
+    def encode(self, df: DataFrame, column: str) -> DataFrame:
+        logging.info(f"Applying PySpark One-Hot Encoding to {column}")
+        
+        # 1. String Indexing
+        indexer = StringIndexer(inputCol=column, outputCol=f"{column}_index", handleInvalid="keep", stringOrderType="alphabetAsc")
+        
+        # 2. One Hot Encoding
+        encoder = OneHotEncoder(inputCols=[f"{column}_index"], outputCols=[f"{column}_encoded"])
+        
+        # 3. Pipeline
+        pipeline = Pipeline(stages=[indexer, encoder])
+        model = pipeline.fit(df)
+        df_encoded = model.transform(df)
+        
+        # Return with original column dropped
+        # and intermediate index column dropped.
+        return df_encoded.drop(column, f"{column}_index")
 
 
 class LabelEncodingStrategy(FeatureEncodingStrategy):
-    def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
-        from sklearn.preprocessing import LabelEncoder
-        logging.info(f"Applying Label Encoding to the {column} column.")
-        le = LabelEncoder()
-        df[column] = le.fit_transform(df[column])
-        return df
-
+    def encode(self, df: DataFrame, column: str) -> DataFrame:
+        logging.info(f"Applying PySpark Label Encoding to {column}")
+        indexer = StringIndexer(inputCol=column, outputCol=f"{column}_index", handleInvalid="keep", stringOrderType="alphabetAsc")
+        model = indexer.fit(df)
+        df_encoded = model.transform(df)
+        
+        # Replace original column with indexed column
+        # Rename new index column to original name after dropping original
+        return df_encoded.drop(column).withColumnRenamed(f"{column}_index", column)
